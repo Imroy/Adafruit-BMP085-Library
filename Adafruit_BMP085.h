@@ -60,11 +60,13 @@ class Adafruit_BMP085 {
   int32_t readPressure(void);
   int32_t readSealevelPressure(float altitude_meters = 0);
   float readAltitude(float sealevelPressure = 101325); // std atmosphere
+
   uint16_t readRawTemperature(void);
   uint32_t readRawPressure(void);
+  void clear_raw(void);
   
  private:
-  int32_t computeB5(int32_t UT);
+  int32_t computeB5(void);
   uint8_t read8(uint8_t addr);
   uint16_t read16(uint8_t addr);
   void write8(uint8_t addr, uint8_t data);
@@ -73,6 +75,10 @@ class Adafruit_BMP085 {
 
   int16_t ac1, ac2, ac3, b1, b2, mb, mc, md;
   uint16_t ac4, ac5, ac6;
+
+  uint16_t UT;
+  uint32_t UP;
+  bool have_t, have_p;
 };
 
 

@@ -57,11 +57,12 @@ boolean Adafruit_BMP085::begin(uint8_t mode) {
   Serial.print("mc = "); Serial.println(mc, DEC);
   Serial.print("md = "); Serial.println(md, DEC);
 #endif
+  clear_raw();
 
   return true;
 }
 
-int32_t Adafruit_BMP085::computeB5(int32_t UT) {
+int32_t Adafruit_BMP085::computeB5(void) {
   int32_t X1 = (UT - (int32_t)ac6) * ((int32_t)ac5) >> 15;
   int32_t X2 = ((int32_t)mc << 11) / (X1+(int32_t)md);
   return X1 + X2;
@@ -70,15 +71,16 @@ int32_t Adafruit_BMP085::computeB5(int32_t UT) {
 uint16_t Adafruit_BMP085::readRawTemperature(void) {
   write8(BMP085_CONTROL, BMP085_READTEMPCMD);
   delay(5);
+  UT = read16(BMP085_TEMPDATA);
+  have_t = true;
+
 #if BMP085_DEBUG == 1
-  Serial.print("Raw temp: "); Serial.println(read16(BMP085_TEMPDATA));
+  Serial.print("Raw temp: "); Serial.println(UT);
 #endif
-  return read16(BMP085_TEMPDATA);
+  return UT;
 }
 
 uint32_t Adafruit_BMP085::readRawPressure(void) {
-  uint32_t raw;
-
   write8(BMP085_CONTROL, BMP085_READPRESSURECMD + (oversampling << 6));
 
   if (oversampling == BMP085_ULTRALOWPOWER) 
@@ -90,33 +92,40 @@ uint32_t Adafruit_BMP085::readRawPressure(void) {
   else 
     delay(26);
 
-  raw = read16(BMP085_PRESSUREDATA);
+  UP = read16(BMP085_PRESSUREDATA);
 
-  raw <<= 8;
-  raw |= read8(BMP085_PRESSUREDATA+2);
-  raw >>= (8 - oversampling);
+  UP <<= 8;
+  UP |= read8(BMP085_PRESSUREDATA+2);
+  UP >>= (8 - oversampling);
 
  /* this pull broke stuff, look at it later?
   if (oversampling==0) {
-    raw <<= 8;
-    raw |= read8(BMP085_PRESSUREDATA+2);
-    raw >>= (8 - oversampling);
+    UP <<= 8;
+    UP |= read8(BMP085_PRESSUREDATA+2);
+    UP >>= (8 - oversampling);
   }
  */
+  have_p = true;
 
 #if BMP085_DEBUG == 1
-  Serial.print("Raw pressure: "); Serial.println(raw);
+  Serial.print("Raw pressure: "); Serial.println(UP);
 #endif
-  return raw;
+  return UP;
+}
+
+void Adafruit_BMP085::clear_raw(void) {
+  have_t = have_p = false;
 }
 
 
 int32_t Adafruit_BMP085::readPressure(void) {
-  int32_t UT, UP, B3, B5, B6, X1, X2, X3, p;
+  int32_t B3, B5, B6, X1, X2, X3, p;
   uint32_t B4, B7;
 
-  UT = readRawTemperature();
-  UP = readRawPressure();
+  if (!have_t)
+    readRawTemperature();
+  if (!have_p)
+    readRawPressure();
 
 #if BMP085_DEBUG == 1
   // use datasheet numbers!
@@ -135,7 +144,7 @@ int32_t Adafruit_BMP085::readPressure(void) {
   oversampling = 0;
 #endif
 
-  B5 = computeB5(UT);
+  B5 = computeB5();
 
 #if BMP085_DEBUG == 1
   Serial.print("X1 = "); Serial.println(X1);
@@ -198,10 +207,11 @@ int32_t Adafruit_BMP085::readSealevelPressure(float altitude_meters) {
 }
 
 float Adafruit_BMP085::readTemperature(void) {
-  int32_t UT, B5;     // following ds convention
+  int32_t B5;     // following ds convention
   float temp;
 
-  UT = readRawTemperature();
+  if (!have_t)
+    readRawTemperature();
 
 #if BMP085_DEBUG == 1
   // use datasheet numbers!
@@ -212,7 +222,7 @@ float Adafruit_BMP085::readTemperature(void) {
   md = 2868;
 #endif
 
-  B5 = computeB5(UT);
+  B5 = computeB5();
   temp = (B5+8) >> 4;
   temp /= 10;
   
