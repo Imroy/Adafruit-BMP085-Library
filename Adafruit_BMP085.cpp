@@ -98,13 +98,6 @@ uint32_t Adafruit_BMP085::readRawPressure(void) {
   UP |= read8(BMP085_PRESSUREDATA+2);
   UP >>= (8 - oversampling);
 
- /* this pull broke stuff, look at it later?
-  if (oversampling==0) {
-    UP <<= 8;
-    UP |= read8(BMP085_PRESSUREDATA+2);
-    UP >>= (8 - oversampling);
-  }
- */
   have_p = true;
 
 #if BMP085_DEBUG == 1
