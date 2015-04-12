@@ -55,16 +55,19 @@
 class Adafruit_BMP085 {
  public:
   Adafruit_BMP085();
+  boolean check(void);
   boolean begin(uint8_t mode = BMP085_ULTRAHIGHRES);  // by default go highres
-  float readTemperature(void);
-  int32_t readPressure(void);
-  int32_t readSealevelPressure(float altitude_meters = 0);
-  float readAltitude(float sealevelPressure = 101325); // std atmosphere
 
-  uint16_t readRawTemperature(void);
-  uint32_t readRawPressure(void);
-  void clear_raw(void);
-  
+  bool readRawTemperature(void);
+  bool readRawPressure(void);
+
+  uint16_t rawTemperature(void) const { return UT; }
+  uint32_t rawPressure(void) const { return UP; }
+  float temperature(void);
+  int32_t pressure(void);
+  int32_t sealevelPressure(float altitude_meters = 0);
+  float altitude(float sealevelPressure = 101325); // std atmosphere
+
  private:
   int32_t computeB5(void);
   uint8_t read8(uint8_t addr);
@@ -78,7 +81,8 @@ class Adafruit_BMP085 {
 
   uint16_t UT;
   uint32_t UP;
-  bool have_t, have_p;
+
+  bool error;
 };
 
 

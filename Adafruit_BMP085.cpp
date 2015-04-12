@@ -20,28 +20,45 @@
 Adafruit_BMP085::Adafruit_BMP085() {
 }
 
+boolean Adafruit_BMP085::check(void) {
+  uint8_t d = read8(0xD0);
+  if (error) return false;
+  return d == 0x55;
+}
 
 boolean Adafruit_BMP085::begin(uint8_t mode) {
   if (mode > BMP085_ULTRAHIGHRES) 
     mode = BMP085_ULTRAHIGHRES;
   oversampling = mode;
 
-  if (read8(0xD0) != 0x55) return false;
+  if (!check())
+    return false;
 
   /* read calibration data */
   ac1 = read16(BMP085_CAL_AC1);
+  if (error) return false;
   ac2 = read16(BMP085_CAL_AC2);
+  if (error) return false;
   ac3 = read16(BMP085_CAL_AC3);
+  if (error) return false;
   ac4 = read16(BMP085_CAL_AC4);
+  if (error) return false;
   ac5 = read16(BMP085_CAL_AC5);
+  if (error) return false;
   ac6 = read16(BMP085_CAL_AC6);
+  if (error) return false;
 
   b1 = read16(BMP085_CAL_B1);
+  if (error) return false;
   b2 = read16(BMP085_CAL_B2);
+  if (error) return false;
 
   mb = read16(BMP085_CAL_MB);
+  if (error) return false;
   mc = read16(BMP085_CAL_MC);
+  if (error) return false;
   md = read16(BMP085_CAL_MD);
+  if (error) return false;
 #if (BMP085_DEBUG == 1)
   Serial.print("ac1 = "); Serial.println(ac1, DEC);
   Serial.print("ac2 = "); Serial.println(ac2, DEC);
@@ -57,7 +74,6 @@ boolean Adafruit_BMP085::begin(uint8_t mode) {
   Serial.print("mc = "); Serial.println(mc, DEC);
   Serial.print("md = "); Serial.println(md, DEC);
 #endif
-  clear_raw();
 
   return true;
 }
@@ -68,19 +84,20 @@ int32_t Adafruit_BMP085::computeB5(void) {
   return X1 + X2;
 }
 
-uint16_t Adafruit_BMP085::readRawTemperature(void) {
+bool Adafruit_BMP085::readRawTemperature(void) {
   write8(BMP085_CONTROL, BMP085_READTEMPCMD);
   delay(5);
-  UT = read16(BMP085_TEMPDATA);
-  have_t = true;
+  uint16_t d = read16(BMP085_TEMPDATA);
+  if (error) return false;
+  UT = d;
 
 #if BMP085_DEBUG == 1
   Serial.print("Raw temp: "); Serial.println(UT);
 #endif
-  return UT;
+  return true;
 }
 
-uint32_t Adafruit_BMP085::readRawPressure(void) {
+bool Adafruit_BMP085::readRawPressure(void) {
   write8(BMP085_CONTROL, BMP085_READPRESSURECMD + (oversampling << 6));
 
   if (oversampling == BMP085_ULTRALOWPOWER) 
@@ -92,33 +109,25 @@ uint32_t Adafruit_BMP085::readRawPressure(void) {
   else 
     delay(26);
 
-  UP = read16(BMP085_PRESSUREDATA);
-
-  UP <<= 8;
-  UP |= read8(BMP085_PRESSUREDATA+2);
+  uint16_t d;
+  d = read16(BMP085_PRESSUREDATA);
+  if (error) return false;
+  UP = (uint32_t)d << 8;
+  d = read8(BMP085_PRESSUREDATA+2);
+  if (error) return false;
+  UP |= d;
   UP >>= (8 - oversampling);
-
-  have_p = true;
 
 #if BMP085_DEBUG == 1
   Serial.print("Raw pressure: "); Serial.println(UP);
 #endif
-  return UP;
-}
-
-void Adafruit_BMP085::clear_raw(void) {
-  have_t = have_p = false;
+  return true;
 }
 
 
-int32_t Adafruit_BMP085::readPressure(void) {
+int32_t Adafruit_BMP085::pressure(void) {
   int32_t B3, B5, B6, X1, X2, X3, p;
   uint32_t B4, B7;
-
-  if (!have_t)
-    readRawTemperature();
-  if (!have_p)
-    readRawPressure();
 
 #if BMP085_DEBUG == 1
   // use datasheet numbers!
@@ -194,17 +203,14 @@ int32_t Adafruit_BMP085::readPressure(void) {
   return p;
 }
 
-int32_t Adafruit_BMP085::readSealevelPressure(float altitude_meters) {
+int32_t Adafruit_BMP085::sealevelPressure(float altitude_meters) {
   float pressure = readPressure();
   return (int32_t)(pressure / pow(1.0-altitude_meters/44330, 5.255));
 }
 
-float Adafruit_BMP085::readTemperature(void) {
+float Adafruit_BMP085::temperature(void) {
   int32_t B5;     // following ds convention
   float temp;
-
-  if (!have_t)
-    readRawTemperature();
 
 #if BMP085_DEBUG == 1
   // use datasheet numbers!
@@ -222,12 +228,12 @@ float Adafruit_BMP085::readTemperature(void) {
   return temp;
 }
 
-float Adafruit_BMP085::readAltitude(float sealevelPressure) {
+float Adafruit_BMP085::altitude(float sealevelPressure) {
   float altitude;
 
   float pressure = readPressure();
 
-  altitude = 44330 * (1.0 - pow(pressure /sealevelPressure,0.1903));
+  altitude = 44330 * (1.0 - pow(pressure / sealevelPressure, 0.1903));
 
   return altitude;
 }
@@ -248,11 +254,18 @@ uint8_t Adafruit_BMP085::read8(uint8_t a) {
   
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device 
   Wire.requestFrom(BMP085_I2CADDR, 1);// send data n-bytes read
+  int d;
+  error = false;
 #if (ARDUINO >= 100)
-  ret = Wire.read(); // receive DATA
+  d = Wire.read(); // receive DATA
 #else
-  ret = Wire.receive(); // receive DATA
+  d = Wire.receive(); // receive DATA
 #endif
+  if (d == -1) {
+    error = true;
+    return 0;
+  }
+  ret = d;
   Wire.endTransmission(); // end transmission
 
   return ret;
@@ -271,14 +284,34 @@ uint16_t Adafruit_BMP085::read16(uint8_t a) {
   
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device 
   Wire.requestFrom(BMP085_I2CADDR, 2);// send data n-bytes read
+  int d;
+  error = false;
 #if (ARDUINO >= 100)
-  ret = Wire.read(); // receive DATA
-  ret <<= 8;
-  ret |= Wire.read(); // receive DATA
+  d = Wire.read();
+  if (d == -1) {
+    error = true;
+    return 0;
+  }
+  ret = (uint8_t)d << 8;
+  d = Wire.read();
+  if (d == -1) {
+    error = true;
+    return 0;
+  }
+  ret |= (uint8_t)d;
 #else
-  ret = Wire.receive(); // receive DATA
-  ret <<= 8;
-  ret |= Wire.receive(); // receive DATA
+  d = Wire.receive();
+  if (d == -1) {
+    error = true;
+    return 0;
+  }
+  ret = (uint8_t)d << 8;
+  d = Wire.receive();
+  if (d == -1) {
+    error = true;
+    return 0;
+  }
+  ret |= (uint8_t)d;
 #endif
   Wire.endTransmission(); // end transmission
 
