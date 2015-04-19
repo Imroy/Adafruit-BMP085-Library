@@ -215,22 +215,14 @@ uint8_t Adafruit_BMP085::read8(uint8_t a) {
   uint8_t ret;
 
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device 
-#if (ARDUINO >= 100)
   Wire.write(a); // sends register address to read from
-#else
-  Wire.send(a); // sends register address to read from
-#endif
   Wire.endTransmission(); // end transmission
   
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device 
   Wire.requestFrom(BMP085_I2CADDR, 1);// send data n-bytes read
   int d;
   error = false;
-#if (ARDUINO >= 100)
   d = Wire.read(); // receive DATA
-#else
-  d = Wire.receive(); // receive DATA
-#endif
   if (d == -1) {
     error = true;
     return 0;
@@ -245,23 +237,19 @@ uint16_t Adafruit_BMP085::read16(uint8_t a) {
   uint16_t ret;
 
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device 
-#if (ARDUINO >= 100)
   Wire.write(a); // sends register address to read from
-#else
-  Wire.send(a); // sends register address to read from
-#endif
   Wire.endTransmission(); // end transmission
   
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device 
   Wire.requestFrom(BMP085_I2CADDR, 2);// send data n-bytes read
   int d;
   error = false;
-#if (ARDUINO >= 100)
   d = Wire.read();
   if (d == -1) {
     error = true;
     return 0;
   }
+
   ret = (uint8_t)d << 8;
   d = Wire.read();
   if (d == -1) {
@@ -269,20 +257,7 @@ uint16_t Adafruit_BMP085::read16(uint8_t a) {
     return 0;
   }
   ret |= (uint8_t)d;
-#else
-  d = Wire.receive();
-  if (d == -1) {
-    error = true;
-    return 0;
-  }
-  ret = (uint8_t)d << 8;
-  d = Wire.receive();
-  if (d == -1) {
-    error = true;
-    return 0;
-  }
-  ret |= (uint8_t)d;
-#endif
+
   Wire.endTransmission(); // end transmission
 
   return ret;
@@ -290,12 +265,7 @@ uint16_t Adafruit_BMP085::read16(uint8_t a) {
 
 void Adafruit_BMP085::write8(uint8_t a, uint8_t d) {
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device 
-#if (ARDUINO >= 100)
   Wire.write(a); // sends register address to read from
   Wire.write(d);  // write data
-#else
-  Wire.send(a); // sends register address to read from
-  Wire.send(d);  // write data
-#endif
   Wire.endTransmission(); // end transmission
 }
