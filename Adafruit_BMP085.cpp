@@ -129,23 +129,6 @@ int32_t Adafruit_BMP085::pressure(void) {
   int32_t B3, B5, B6, X1, X2, X3, p;
   uint32_t B4, B7;
 
-#if BMP085_DEBUG == 1
-  // use datasheet numbers!
-  UT = 27898;
-  UP = 23843;
-  ac6 = 23153;
-  ac5 = 32757;
-  mc = -8711;
-  md = 2868;
-  b1 = 6190;
-  b2 = 4;
-  ac3 = -14383;
-  ac2 = -72;
-  ac1 = 408;
-  ac4 = 32741;
-  oversampling = 0;
-#endif
-
   B5 = computeB5();
 
 #if BMP085_DEBUG == 1
@@ -211,15 +194,6 @@ int32_t Adafruit_BMP085::sealevelPressure(float altitude_meters) {
 float Adafruit_BMP085::temperature(void) {
   int32_t B5;     // following ds convention
   float temp;
-
-#if BMP085_DEBUG == 1
-  // use datasheet numbers!
-  UT = 27898;
-  ac6 = 23153;
-  ac5 = 32757;
-  mc = -8711;
-  md = 2868;
-#endif
 
   B5 = computeB5();
   temp = (B5+8) >> 4;
