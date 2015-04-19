@@ -85,8 +85,6 @@ int32_t Adafruit_BMP085::computeB5(void) {
 }
 
 bool Adafruit_BMP085::readRawTemperature(void) {
-  write8(BMP085_CONTROL, BMP085_READTEMPCMD);
-  delay(5);
   uint16_t d = read16(BMP085_TEMPDATA);
   if (error) return false;
   UT = d;
@@ -98,17 +96,6 @@ bool Adafruit_BMP085::readRawTemperature(void) {
 }
 
 bool Adafruit_BMP085::readRawPressure(void) {
-  write8(BMP085_CONTROL, BMP085_READPRESSURECMD + (oversampling << 6));
-
-  if (oversampling == BMP085_ULTRALOWPOWER) 
-    delay(5);
-  else if (oversampling == BMP085_STANDARD) 
-    delay(8);
-  else if (oversampling == BMP085_HIGHRES) 
-    delay(14);
-  else 
-    delay(26);
-
   uint16_t d;
   d = read16(BMP085_PRESSUREDATA);
   if (error) return false;
