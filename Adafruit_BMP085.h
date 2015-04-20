@@ -59,9 +59,24 @@ class Adafruit_BMP085 {
   boolean begin(uint8_t mode = BMP085_ULTRAHIGHRES);  // by default go highres
 
   // 4.5 ms
-  void measureTemperature(void) { write8(BMP085_CONTROL, BMP085_READTEMPCMD); }
+  unsigned long measureTemperature(void) {
+    write8(BMP085_CONTROL, BMP085_READTEMPCMD);
+    return 5;
+  }
   // 4.5/7.5/13.5/25.5 ms
-  void measurePressure(void) { write8(BMP085_CONTROL, BMP085_READPRESSURECMD); }
+  unsigned long measurePressure(void) {
+    write8(BMP085_CONTROL, BMP085_READPRESSURECMD);
+    switch (oversampling) {
+    case 0:
+      return 5;
+    case 1:
+      return 8;
+    case 2:
+      return 14;
+    default:
+      return 26;
+    }
+  }
 
   bool readRawTemperature(void);
   bool readRawPressure(void);
