@@ -29,44 +29,52 @@
 
 #define BMP085_I2CADDR 0x77
 
-#define BMP085_ULTRALOWPOWER	0
-#define BMP085_STANDARD		1
-#define BMP085_HIGHRES		2
-#define BMP085_ULTRAHIGHRES	3
+enum BMP085_mode {
+  ULTRALOWPOWER,
+  STANDARD,
+  HIGHRES,
+  ULTRAHIGHRES,
+};
 
-#define BMP085_CAL_AC1		0xAA  // R   Calibration data (16 bits)
-#define BMP085_CAL_AC2		0xAC  // R   Calibration data (16 bits)
-#define BMP085_CAL_AC3		0xAE  // R   Calibration data (16 bits)
-#define BMP085_CAL_AC4		0xB0  // R   Calibration data (16 bits)
-#define BMP085_CAL_AC5		0xB2  // R   Calibration data (16 bits)
-#define BMP085_CAL_AC6		0xB4  // R   Calibration data (16 bits)
-#define BMP085_CAL_B1		0xB6  // R   Calibration data (16 bits)
-#define BMP085_CAL_B2		0xB8  // R   Calibration data (16 bits)
-#define BMP085_CAL_MB		0xBA  // R   Calibration data (16 bits)
-#define BMP085_CAL_MC		0xBC  // R   Calibration data (16 bits)
-#define BMP085_CAL_MD		0xBE  // R   Calibration data (16 bits)
+enum BMP085_register {
+  CAL_AC1		= 0xAA,  // R   Calibration data (16 bits)
+  CAL_AC2		= 0xAC,  // R   Calibration data (16 bits)
+  CAL_AC3		= 0xAE,  // R   Calibration data (16 bits)
+  CAL_AC4		= 0xB0,  // R   Calibration data (16 bits)
+  CAL_AC5		= 0xB2,  // R   Calibration data (16 bits)
+  CAL_AC6		= 0xB4,  // R   Calibration data (16 bits)
+  CAL_B1		= 0xB6,  // R   Calibration data (16 bits)
+  CAL_B2		= 0xB8,  // R   Calibration data (16 bits)
+  CAL_MB		= 0xBA,  // R   Calibration data (16 bits)
+  CAL_MC		= 0xBC,  // R   Calibration data (16 bits)
+  CAL_MD		= 0xBE,  // R   Calibration data (16 bits)
 
-#define BMP085_CONTROL		0xF4
-#define BMP085_TEMPDATA		0xF6
-#define BMP085_PRESSUREDATA	0xF6
-#define BMP085_READTEMPCMD	0x2E
-#define BMP085_READPRESSURECMD	0x34
+  CHECK			= 0xD0,
 
+  CONTROL		= 0xF4,
+  DATA			= 0xF6,
+  DATA_XLSB		= 0xF8,
+};
+
+enum BMP085_command {
+  READTEMP		= 0x2E,
+  READPRESSURE		= 0x34,
+};
 
 class Adafruit_BMP085 {
  public:
   Adafruit_BMP085();
   boolean check(void);
-  boolean begin(uint8_t mode = BMP085_ULTRAHIGHRES);  // by default go highres
+  boolean begin(BMP085_mode mode = ULTRAHIGHRES);  // by default go highres
 
   // 4.5 ms
   unsigned long measureTemperature(void) {
-    write8(BMP085_CONTROL, BMP085_READTEMPCMD);
+    write8(CONTROL, READTEMP);
     return 5;
   }
   // 4.5/7.5/13.5/25.5 ms
   unsigned long measurePressure(void) {
-    write8(BMP085_CONTROL, BMP085_READPRESSURECMD);
+    write8(CONTROL, READPRESSURE);
     switch (oversampling) {
     case 0:
       return 5;
@@ -91,9 +99,9 @@ class Adafruit_BMP085 {
 
  private:
   int32_t computeB5(void);
-  uint8_t read8(uint8_t addr);
-  uint16_t read16(uint8_t addr);
-  void write8(uint8_t addr, uint8_t data);
+  uint8_t read8(BMP085_register addr);
+  uint16_t read16(BMP085_register addr);
+  void write8(BMP085_register addr, uint8_t data);
 
   uint8_t oversampling;
 
