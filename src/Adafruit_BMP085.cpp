@@ -1,17 +1,17 @@
-/*************************************************** 
+/***************************************************
   This is a library for the Adafruit BMP085/BMP180 Barometric Pressure + Temp sensor
 
-  Designed specifically to work with the Adafruit BMP085 or BMP180 Breakout 
+  Designed specifically to work with the Adafruit BMP085 or BMP180 Breakout
   ----> http://www.adafruit.com/products/391
   ----> http://www.adafruit.com/products/1603
 
-  These displays use I2C to communicate, 2 pins are required to  
+  These displays use I2C to communicate, 2 pins are required to
   interface
-  Adafruit invests time and resources providing this open source code, 
-  please support Adafruit and open-source hardware by purchasing 
+  Adafruit invests time and resources providing this open source code,
+  please support Adafruit and open-source hardware by purchasing
   products from Adafruit!
 
-  Written by Limor Fried/Ladyada for Adafruit Industries.  
+  Written by Limor Fried/Ladyada for Adafruit Industries.
   BSD license, all text above must be included in any redistribution
  ****************************************************/
 
@@ -27,7 +27,7 @@ boolean Adafruit_BMP085::check(void) {
 }
 
 boolean Adafruit_BMP085::begin(uint8_t mode) {
-  if (mode > BMP085_ULTRAHIGHRES) 
+  if (mode > BMP085_ULTRAHIGHRES)
     mode = BMP085_ULTRAHIGHRES;
   oversampling = mode;
 
@@ -202,11 +202,11 @@ float Adafruit_BMP085::altitude(float sealevelPressure) {
 uint8_t Adafruit_BMP085::read8(uint8_t a) {
   uint8_t ret;
 
-  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device 
+  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
   Wire.write(a); // sends register address to read from
   Wire.endTransmission(); // end transmission
-  
-  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device 
+
+  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
   Wire.requestFrom(BMP085_I2CADDR, 1);// send data n-bytes read
   int d;
   error = false;
@@ -224,11 +224,11 @@ uint8_t Adafruit_BMP085::read8(uint8_t a) {
 uint16_t Adafruit_BMP085::read16(uint8_t a) {
   uint16_t ret;
 
-  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device 
+  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
   Wire.write(a); // sends register address to read from
   Wire.endTransmission(); // end transmission
-  
-  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device 
+
+  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
   Wire.requestFrom(BMP085_I2CADDR, 2);// send data n-bytes read
   int d;
   error = false;
@@ -252,7 +252,7 @@ uint16_t Adafruit_BMP085::read16(uint8_t a) {
 }
 
 void Adafruit_BMP085::write8(uint8_t a, uint8_t d) {
-  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device 
+  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
   Wire.write(a); // sends register address to read from
   Wire.write(d);  // write data
   Wire.endTransmission(); // end transmission
