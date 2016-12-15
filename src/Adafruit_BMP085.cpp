@@ -78,18 +78,17 @@ boolean Adafruit_BMP085::begin(mode m) {
   return true;
 }
 
-int32_t Adafruit_BMP085::_computeB5(void) {
+void Adafruit_BMP085::_computeB5(void) {
   int32_t X1 = (_ut - (int32_t)_ac6) * ((int32_t)_ac5) >> 15;
   int32_t X2 = ((int32_t)_mc << 11) / (X1 + (int32_t)_md);
-  int32_t B5 = X1 + X2;
+  _b5 = X1 + X2;
+  _have_b5 = true;
 
 #if BMP085_DEBUG == 1
   Serial.print("X1 = "); Serial.println(X1);
   Serial.print("X2 = "); Serial.println(X2);
-  Serial.print("B5 = "); Serial.println(B5);
+  Serial.print("B5 = "); Serial.println(_b5);
 #endif
-
-  return B5;
 }
 
 bool Adafruit_BMP085::readRawTemperature(void) {
@@ -121,10 +120,11 @@ bool Adafruit_BMP085::readRawPressure(void) {
 
 
 int32_t Adafruit_BMP085::pressure(void) {
-  int32_t B5 = _computeB5();
+  if (!_have_b5)
+    _computeB5();
 
   // do pressure calcs
-  int32_t B6 = B5 - 4000;
+  int32_t B6 = _b5 - 4000;
   int32_t X1 = ((int32_t)_b2 * ((B6 * B6) >> 12 )) >> 11;
   int32_t X2 = ((int32_t)_ac2 * B6) >> 11;
   int32_t X3 = X1 + X2;
@@ -181,11 +181,10 @@ int32_t Adafruit_BMP085::sealevelPressure(float altitude_meters) {
 }
 
 float Adafruit_BMP085::temperature(void) {
-  int32_t B5;     // following ds convention
-  float temp;
+  if (!_have_b5)
+    _computeB5();
 
-  temp = (B5+8) >> 4;
-  B5 = _computeB5();
+  float temp = (_b5 + 8) >> 4;
   temp /= 10;
 
   return temp;

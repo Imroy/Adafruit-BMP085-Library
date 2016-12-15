@@ -44,6 +44,8 @@ private:
   int16_t _ac1, _ac2, _ac3;
   uint16_t _ac4, _ac5, _ac6;
   int16_t _b1, _b2, _mb, _mc, _md;
+  int32_t _b5;
+  bool _have_b5;
 
   uint16_t _ut;
   uint32_t _up;
@@ -78,7 +80,7 @@ private:
   uint8_t _read8(reg addr);
   uint16_t _read16(reg addr);
   void _write_cmd(reg addr, uint8_t cmd);
-  int32_t _computeB5(void);
+  void _computeB5(void);
 
  public:
   Adafruit_BMP085();
@@ -87,6 +89,7 @@ private:
 
   // 4.5 ms
   unsigned long measureTemperature(void) {
+    _have_b5 = false;
     _write_cmd(CONTROL, READTEMP);
     return 5;
   }
