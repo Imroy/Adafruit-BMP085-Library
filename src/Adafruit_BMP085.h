@@ -39,16 +39,16 @@ public:
   };
 
 private:
-  uint8_t oversampling;
+  uint8_t _oversampling;
 
-  int16_t ac1, ac2, ac3;
-  uint16_t ac4, ac5, ac6;
-  int16_t b1, b2, mb, mc, md;
+  int16_t _ac1, _ac2, _ac3;
+  uint16_t _ac4, _ac5, _ac6;
+  int16_t _b1, _b2, _mb, _mc, _md;
 
-  uint16_t UT;
-  uint32_t UP;
+  uint16_t _ut;
+  uint32_t _up;
 
-  bool error;
+  bool _error;
 
   enum reg {
     CAL_AC1		= 0xAA,  // R   Calibration data (16 bits)
@@ -75,10 +75,10 @@ private:
     READPRESSURE	= 0x34,
   };
 
-  uint8_t read8(reg addr);
-  uint16_t read16(reg addr);
-  void write_cmd(reg addr, uint8_t cmd);
-  int32_t computeB5(void);
+  uint8_t _read8(reg addr);
+  uint16_t _read16(reg addr);
+  void _write_cmd(reg addr, uint8_t cmd);
+  int32_t _computeB5(void);
 
  public:
   Adafruit_BMP085();
@@ -87,13 +87,13 @@ private:
 
   // 4.5 ms
   unsigned long measureTemperature(void) {
-    write_cmd(CONTROL, READTEMP);
+    _write_cmd(CONTROL, READTEMP);
     return 5;
   }
   // 4.5/7.5/13.5/25.5 ms
   unsigned long measurePressure(void) {
-    write_cmd(CONTROL, READPRESSURE | (oversampling << 6));
-    switch (oversampling) {
+    _write_cmd(CONTROL, READPRESSURE | (_oversampling << 6));
+    switch (_oversampling) {
     case 0:
       return 5;
     case 1:
@@ -108,8 +108,8 @@ private:
   bool readRawTemperature(void);
   bool readRawPressure(void);
 
-  uint16_t rawTemperature(void) const { return UT; }
-  uint32_t rawPressure(void) const { return UP; }
+  uint16_t rawTemperature(void) const { return _ut; }
+  uint32_t rawPressure(void) const { return _up; }
   float temperature(void);
   int32_t pressure(void);
   int32_t sealevelPressure(float altitude_meters = 0);
