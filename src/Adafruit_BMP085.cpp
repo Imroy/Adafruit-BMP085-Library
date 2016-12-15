@@ -26,10 +26,10 @@ boolean Adafruit_BMP085::check(void) {
   return d == 0x55;
 }
 
-boolean Adafruit_BMP085::begin(BMP085_mode mode) {
-  if (mode > ULTRAHIGHRES)
-    mode = ULTRAHIGHRES;
-  oversampling = mode;
+boolean Adafruit_BMP085::begin(mode m) {
+  if (m > ULTRAHIGHRES)
+    m = ULTRAHIGHRES;
+  oversampling = m;
 
   if (!check())
     return false;
@@ -199,7 +199,7 @@ float Adafruit_BMP085::altitude(float sealevelPressure) {
 
 /*********************************************************************/
 
-uint8_t Adafruit_BMP085::read8(BMP085_register addr) {
+uint8_t Adafruit_BMP085::read8(reg addr) {
   uint8_t ret;
 
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
@@ -221,7 +221,7 @@ uint8_t Adafruit_BMP085::read8(BMP085_register addr) {
   return ret;
 }
 
-uint16_t Adafruit_BMP085::read16(BMP085_register addr) {
+uint16_t Adafruit_BMP085::read16(reg addr) {
   uint16_t ret;
 
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
@@ -251,9 +251,9 @@ uint16_t Adafruit_BMP085::read16(BMP085_register addr) {
   return ret;
 }
 
-void Adafruit_BMP085::write8(BMP085_register addr, uint8_t data) {
+void Adafruit_BMP085::write_cmd(reg addr, uint8_t cmd) {
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
   Wire.write(addr); // sends register address to read from
-  Wire.write(data);  // write data
+  Wire.write(cmd);  // write command
   Wire.endTransmission(); // end transmission
 }
