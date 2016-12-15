@@ -92,7 +92,7 @@ private:
   }
   // 4.5/7.5/13.5/25.5 ms
   unsigned long measurePressure(void) {
-    write_cmd(CONTROL, READPRESSURE);
+    write_cmd(CONTROL, READPRESSURE | (oversampling << 6));
     switch (oversampling) {
     case 0:
       return 5;
