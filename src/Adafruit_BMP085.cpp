@@ -198,45 +198,42 @@ float Adafruit_BMP085::altitude(float sealevelPressure) {
 }
 
 uint8_t Adafruit_BMP085::_read8(reg addr) {
-  uint8_t ret;
-
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
   Wire.write(addr); // sends register address to read from
   Wire.endTransmission(); // end transmission
 
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
   Wire.requestFrom(BMP085_I2CADDR, 1);// send data n-bytes read
-  int d;
+
   _error = false;
-  d = Wire.read(); // receive DATA
+  int d = Wire.read(); // receive DATA
   if (d == -1) {
     _error = true;
     return 0;
   }
-  ret = d;
+  uint8_t ret = d;
   Wire.endTransmission(); // end transmission
 
   return ret;
 }
 
 uint16_t Adafruit_BMP085::_read16(reg addr) {
-  uint16_t ret;
-
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
   Wire.write(addr); // sends register address to read from
   Wire.endTransmission(); // end transmission
 
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
   Wire.requestFrom(BMP085_I2CADDR, 2);// send data n-bytes read
-  int d;
+
   _error = false;
-  d = Wire.read();
+  int d = Wire.read();
   if (d == -1) {
     _error = true;
     return 0;
   }
 
-  ret = (uint8_t)d << 8;
+  uint16_t ret = (d & 0xff) << 8;
+
   d = Wire.read();
   if (d == -1) {
     _error = true;
