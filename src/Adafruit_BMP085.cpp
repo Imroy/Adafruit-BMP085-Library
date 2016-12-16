@@ -21,43 +21,43 @@ Adafruit_BMP085::Adafruit_BMP085() {
 }
 
 boolean Adafruit_BMP085::check(void) {
-  uint8_t d = _read8(CHECK);
+  uint8_t d = _read8(Register::Check);
   if (_error) return false;
   return d == 0x55;
 }
 
-boolean Adafruit_BMP085::begin(mode m) {
-  if (m > ULTRAHIGHRES)
-    m = ULTRAHIGHRES;
-  _oversampling = m;
+boolean Adafruit_BMP085::begin(Mode m) {
+  if (m > Mode::UltraHighRes)
+    m = Mode::UltraHighRes;
+  _oversampling = static_cast<uint8_t>(m);
 
   if (!check())
     return false;
 
   /* read calibration data */
-  _ac1 = _read16(CAL_AC1);
+  _ac1 = _read16(Register::Cal_AC1);
   if (_error) return false;
-  _ac2 = _read16(CAL_AC2);
+  _ac2 = _read16(Register::Cal_AC2);
   if (_error) return false;
-  _ac3 = _read16(CAL_AC3);
+  _ac3 = _read16(Register::Cal_AC3);
   if (_error) return false;
-  _ac4 = _read16(CAL_AC4);
+  _ac4 = _read16(Register::Cal_AC4);
   if (_error) return false;
-  _ac5 = _read16(CAL_AC5);
+  _ac5 = _read16(Register::Cal_AC5);
   if (_error) return false;
-  _ac6 = _read16(CAL_AC6);
-  if (_error) return false;
-
-  _b1 = _read16(CAL_B1);
-  if (_error) return false;
-  _b2 = _read16(CAL_B2);
+  _ac6 = _read16(Register::Cal_AC6);
   if (_error) return false;
 
-  _mb = _read16(CAL_MB);
+  _b1 = _read16(Register::Cal_B1);
   if (_error) return false;
-  _mc = _read16(CAL_MC);
+  _b2 = _read16(Register::Cal_B2);
   if (_error) return false;
-  _md = _read16(CAL_MD);
+
+  _mb = _read16(Register::Cal_MB);
+  if (_error) return false;
+  _mc = _read16(Register::Cal_MC);
+  if (_error) return false;
+  _md = _read16(Register::Cal_MD);
   if (_error) return false;
 #if (BMP085_DEBUG == 1)
   Serial.print("ac1 = "); Serial.println(_ac1, DEC);
@@ -92,7 +92,7 @@ void Adafruit_BMP085::_computeB5(void) {
 }
 
 bool Adafruit_BMP085::readRawTemperature(void) {
-  uint16_t d = _read16(DATA);
+  uint16_t d = _read16(Register::Data);
   if (_error) return false;
   _ut = d;
 
@@ -104,10 +104,10 @@ bool Adafruit_BMP085::readRawTemperature(void) {
 
 bool Adafruit_BMP085::readRawPressure(void) {
   uint16_t d;
-  d = _read16(DATA);
+  d = _read16(Register::Data);
   if (_error) return false;
   _up = (uint32_t)d << 8;
-  d = _read8(DATA_XLSB);
+  d = _read8(Register::Data_XLSB);
   if (_error) return false;
   _up |= d & 0xff;
   _up >>= (8 - _oversampling);
@@ -196,9 +196,9 @@ float Adafruit_BMP085::altitude(float sealevelPressure) {
   return 44330 * (1.0 - pow(p / sealevelPressure, 0.1903));
 }
 
-uint8_t Adafruit_BMP085::_read8(reg addr) {
+uint8_t Adafruit_BMP085::_read8(Register addr) {
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
-  Wire.write(addr); // sends register address to read from
+  Wire.write(static_cast<uint8_t>(addr)); // sends register address to read from
   Wire.endTransmission(); // end transmission
 
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
@@ -216,9 +216,9 @@ uint8_t Adafruit_BMP085::_read8(reg addr) {
   return ret;
 }
 
-uint16_t Adafruit_BMP085::_read16(reg addr) {
+uint16_t Adafruit_BMP085::_read16(Register addr) {
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
-  Wire.write(addr); // sends register address to read from
+  Wire.write(static_cast<uint8_t>(addr)); // sends register address to read from
   Wire.endTransmission(); // end transmission
 
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
@@ -245,9 +245,9 @@ uint16_t Adafruit_BMP085::_read16(reg addr) {
   return ret;
 }
 
-void Adafruit_BMP085::_write_cmd(reg addr, uint8_t cmd) {
+void Adafruit_BMP085::_write_cmd(Register addr, Command cmd) {
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
-  Wire.write(addr); // sends register address to read from
-  Wire.write(cmd);  // write command
+  Wire.write(static_cast<uint8_t>(addr)); // sends register address to read from
+  Wire.write(static_cast<uint8_t>(cmd));  // write command
   Wire.endTransmission(); // end transmission
 }

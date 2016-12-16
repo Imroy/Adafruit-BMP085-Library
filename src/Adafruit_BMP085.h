@@ -31,11 +31,11 @@
 
 class Adafruit_BMP085 {
 public:
-  enum mode {
-    ULTRALOWPOWER,
-    STANDARD,
-    HIGHRES,
-    ULTRAHIGHRES,
+  enum class Mode : uint8_t {
+    UltraLowPower,
+    Standard,
+    HighRes,
+    UltraHighRes,
   };
 
 private:
@@ -52,50 +52,52 @@ private:
 
   bool _error;
 
-  enum reg {
-    CAL_AC1		= 0xAA,  // R   Calibration data (16 bits)
-    CAL_AC2		= 0xAC,  // R   Calibration data (16 bits)
-    CAL_AC3		= 0xAE,  // R   Calibration data (16 bits)
-    CAL_AC4		= 0xB0,  // R   Calibration data (16 bits)
-    CAL_AC5		= 0xB2,  // R   Calibration data (16 bits)
-    CAL_AC6		= 0xB4,  // R   Calibration data (16 bits)
-    CAL_B1		= 0xB6,  // R   Calibration data (16 bits)
-    CAL_B2		= 0xB8,  // R   Calibration data (16 bits)
-    CAL_MB		= 0xBA,  // R   Calibration data (16 bits)
-    CAL_MC		= 0xBC,  // R   Calibration data (16 bits)
-    CAL_MD		= 0xBE,  // R   Calibration data (16 bits)
+  enum class Register : uint8_t {
+    Cal_AC1		= 0xaa,  // R   Calibration data (16 bits)
+    Cal_AC2		= 0xac,  // R   Calibration data (16 bits)
+    Cal_AC3		= 0xae,  // R   Calibration data (16 bits)
+    Cal_AC4		= 0xb0,  // R   Calibration data (16 bits)
+    Cal_AC5		= 0xb2,  // R   Calibration data (16 bits)
+    Cal_AC6		= 0xb4,  // R   Calibration data (16 bits)
+    Cal_B1		= 0xb6,  // R   Calibration data (16 bits)
+    Cal_B2		= 0xb8,  // R   Calibration data (16 bits)
+    Cal_MB		= 0xba,  // R   Calibration data (16 bits)
+    Cal_MC		= 0xbc,  // R   Calibration data (16 bits)
+    Cal_MD		= 0xbe,  // R   Calibration data (16 bits)
 
-    CHECK		= 0xD0,
+    Check		= 0xd0,
 
-    CONTROL		= 0xF4,
-    DATA		= 0xF6,
-    DATA_XLSB		= 0xF8,
+    Control		= 0xf4,
+    Data		= 0xf6,
+    Data_XLSB		= 0xf8,
   };
 
-  enum command {
-    READTEMP		= 0x2E,
-    READPRESSURE	= 0x34,
+  enum class Command : uint8_t {
+    ReadTemperature	= 0x2e,
+    ReadPressure	= 0x34,
   };
 
-  uint8_t _read8(reg addr);
-  uint16_t _read16(reg addr);
-  void _write_cmd(reg addr, uint8_t cmd);
+  uint8_t _read8(Register addr);
+  uint16_t _read16(Register addr);
+  void _write_cmd(Register addr, Command cmd);
   void _computeB5(void);
 
  public:
   Adafruit_BMP085();
   boolean check(void);
-  boolean begin(mode m = ULTRAHIGHRES);  // by default go highres
+  boolean begin(Mode m = Mode::UltraHighRes);  // by default go highres
 
   // 4.5 ms
   unsigned long measureTemperature(void) {
     _have_b5 = false;
-    _write_cmd(CONTROL, READTEMP);
+    _write_cmd(Register::Control, Command::ReadTemperature);
     return 5;
   }
+
   // 4.5/7.5/13.5/25.5 ms
   unsigned long measurePressure(void) {
-    _write_cmd(CONTROL, READPRESSURE | (_oversampling << 6));
+    _write_cmd(Register::Control, static_cast<Command>(static_cast<uint8_t>(Command::ReadPressure)
+						       | (_oversampling << 6)));
     switch (_oversampling) {
     case 0:
       return 5;
