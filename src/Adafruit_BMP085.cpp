@@ -79,8 +79,8 @@ boolean Adafruit_BMP085::begin(Mode m) {
 }
 
 void Adafruit_BMP085::_computeB5(void) {
-  int32_t X1 = (_ut - (int32_t)_ac6) * ((int32_t)_ac5) >> 15;
-  int32_t X2 = ((int32_t)_mc << 11) / (X1 + (int32_t)_md);
+  float X1 = (_ut - (int32_t)_ac6) * _ac5 / 32768.0;
+  float X2 = (_mc * 2048.0) / (X1 + _md);
   _b5 = X1 + X2;
   _have_b5 = true;
 
@@ -123,12 +123,14 @@ int32_t Adafruit_BMP085::pressure(void) {
   if (!_have_b5)
     _computeB5();
 
+  uint8_t oss_mult = 1 << _oversampling;
+
   // do pressure calcs
-  int32_t B6 = _b5 - 4000;
-  int32_t X1 = ((int32_t)_b2 * ((B6 * B6) >> 12 )) >> 11;
-  int32_t X2 = ((int32_t)_ac2 * B6) >> 11;
-  int32_t X3 = X1 + X2;
-  int32_t B3 = ((((int32_t)_ac1*4 + X3) << _oversampling) + 2) / 4;
+  float B6 = _b5 - 4000;
+  float X1 = _b2 * sq(B6) / 8388608.0;
+  float X2 = _ac2 * B6 / 2048.0;
+  float X3 = X1 + X2;
+  float B3 = ((((_ac1 * 4.0) + X3) * oss_mult) + 2) / 4;
 
 #if BMP085_DEBUG == 1
   Serial.print("B6 = "); Serial.println(B6);
@@ -138,11 +140,11 @@ int32_t Adafruit_BMP085::pressure(void) {
   Serial.print("B3 = "); Serial.println(B3);
 #endif
 
-  X1 = ((int32_t)_ac3 * B6) >> 13;
-  X2 = ((int32_t)_b1 * ((B6 * B6) >> 12)) >> 16;
-  X3 = ((X1 + X2) + 2) >> 2;
-  uint32_t B4 = ((uint32_t)_ac4 * (uint32_t)(X3 + 32768)) >> 15;
-  uint32_t B7 = ((uint32_t)_up - B3) * (uint32_t)(50000UL >> _oversampling);
+  X1 = _ac3 * B6 / 8192.0;
+  X2 = _b1 * sq(B6) / 268435456.0;
+  X3 = ((X1 + X2) + 2) / 4.0;
+  float B4 = (_ac4 * (X3 + 32768)) / 32768.0;
+  float B7 = (_up - B3) * 50000 / oss_mult;
 
 #if BMP085_DEBUG == 1
   Serial.print("X1 = "); Serial.println(X1);
@@ -152,15 +154,10 @@ int32_t Adafruit_BMP085::pressure(void) {
   Serial.print("B7 = "); Serial.println(B7);
 #endif
 
-  int32_t p;
-  if (B7 < 0x80000000) {
-    p = (B7 * 2) / B4;
-  } else {
-    p = (B7 / B4) * 2;
-  }
-  X1 = (p >> 8) * (p >> 8);
-  X1 = (X1 * 3038) >> 16;
-  X2 = (-7357 * p) >> 16;
+  int32_t p = B7 * 2 / B4;
+  X1 = sq(p / 256.0);
+  X1 = (X1 * 3038.0) / 65536.0;
+  X2 = (-7357 * p) / 65536.0;
 
 #if BMP085_DEBUG == 1
   Serial.print("p = "); Serial.println(p);
@@ -168,7 +165,7 @@ int32_t Adafruit_BMP085::pressure(void) {
   Serial.print("X2 = "); Serial.println(X2);
 #endif
 
-  p = p + ((X1 + X2 + (int32_t)3791)>>4);
+  p += ((X1 + X2 + 3791.0) / 16.0);
 #if BMP085_DEBUG == 1
   Serial.print("p = "); Serial.println(p);
 #endif
@@ -184,10 +181,7 @@ float Adafruit_BMP085::temperature(void) {
   if (!_have_b5)
     _computeB5();
 
-  float temp = (_b5 + 8) >> 4;
-  temp /= 10;
-
-  return temp;
+  return (_b5 + 8) / 160.0;
 }
 
 float Adafruit_BMP085::altitude(float sealevelPressure) {

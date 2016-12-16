@@ -44,7 +44,7 @@ private:
   int16_t _ac1, _ac2, _ac3;
   uint16_t _ac4, _ac5, _ac6;
   int16_t _b1, _b2, _mb, _mc, _md;
-  int32_t _b5;
+  float _b5;
   bool _have_b5;
 
   uint16_t _ut;
