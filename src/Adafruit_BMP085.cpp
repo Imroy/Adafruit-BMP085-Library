@@ -121,7 +121,7 @@ bool Adafruit_BMP085::readRawPressure(void) {
 }
 
 
-int32_t Adafruit_BMP085::pressure(void) {
+float Adafruit_BMP085::pressure(void) {
   if (!_have_b5)
     _computeB5();
 

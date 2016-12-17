@@ -115,7 +115,7 @@ private:
   uint16_t rawTemperature(void) const { return _ut; }
   uint32_t rawPressure(void) const { return _up; }
   float temperature(void);
-  int32_t pressure(void);
+  float pressure(void);
   int32_t sealevelPressure(float altitude_meters = 0);
   float altitude(float sealevelPressure = 101325); // std atmosphere
 
