@@ -30,32 +30,34 @@ boolean Adafruit_BMP085::begin(Mode m) {
   if (m > Mode::UltraHighRes)
     m = Mode::UltraHighRes;
   _oversampling = static_cast<uint8_t>(m);
+  _oss_mult = 1 << _oversampling;
+  _oss_scale = 50000UL >> _oversampling;
 
   if (!check())
     return false;
 
   /* read calibration data */
-  _ac1 = _read16(Register::Cal_AC1);
+  _ac1 = _read16(Register::Cal_AC1) * 4.0;
   if (_error) return false;
-  _ac2 = _read16(Register::Cal_AC2);
+  _ac2 = _read16(Register::Cal_AC2) / 32.0;
   if (_error) return false;
-  _ac3 = _read16(Register::Cal_AC3);
+  _ac3 = _read16(Register::Cal_AC3) / 128.0;
   if (_error) return false;
-  _ac4 = _read16(Register::Cal_AC4);
+  _ac4 = _read16(Register::Cal_AC4) / 32768.0;
   if (_error) return false;
-  _ac5 = _read16(Register::Cal_AC5);
+  _ac5 = _read16(Register::Cal_AC5) / 32768.0;
   if (_error) return false;
   _ac6 = _read16(Register::Cal_AC6);
   if (_error) return false;
 
-  _b1 = _read16(Register::Cal_B1);
+  _b1 = _read16(Register::Cal_B1) / 65536.0;
   if (_error) return false;
-  _b2 = _read16(Register::Cal_B2);
+  _b2 = _read16(Register::Cal_B2) / 2048.0;
   if (_error) return false;
 
   _mb = _read16(Register::Cal_MB);
   if (_error) return false;
-  _mc = _read16(Register::Cal_MC);
+  _mc = _read16(Register::Cal_MC) * 2048.0;
   if (_error) return false;
   _md = _read16(Register::Cal_MD);
   if (_error) return false;
@@ -79,9 +81,9 @@ boolean Adafruit_BMP085::begin(Mode m) {
 }
 
 void Adafruit_BMP085::_computeB5(void) {
-  float X1 = (_ut - (int32_t)_ac6) * _ac5 / 32768.0;
-  float X2 = (_mc * 2048.0) / (X1 + _md);
-  _b5 = X1 + X2;
+  float X1 = (_ut - _ac6) * _ac5;
+  float X2 = _mc / (X1 + _md);
+  _b5 = (X1 + X2) / 64;		// Now 1/64th the scale
   _have_b5 = true;
 
 #if BMP085_DEBUG == 1
@@ -123,14 +125,12 @@ int32_t Adafruit_BMP085::pressure(void) {
   if (!_have_b5)
     _computeB5();
 
-  uint8_t oss_mult = 1 << _oversampling;
-
   // do pressure calcs
-  float B6 = _b5 - 4000;
-  float X1 = _b2 * sq(B6) / 8388608.0;
-  float X2 = _ac2 * B6 / 2048.0;
+  float B6 = _b5 - 62.5;	// Now also 1/64th the scale
+  float X1 = _b2 * sq(B6);
+  float X2 = _ac2 * B6;
   float X3 = X1 + X2;
-  float B3 = ((((_ac1 * 4.0) + X3) * oss_mult) + 2) / 4;
+  float B3 = (((_ac1 + X3) * _oss_mult) + 2) / 4;
 
 #if BMP085_DEBUG == 1
   Serial.print("B6 = "); Serial.println(B6);
@@ -140,11 +140,11 @@ int32_t Adafruit_BMP085::pressure(void) {
   Serial.print("B3 = "); Serial.println(B3);
 #endif
 
-  X1 = _ac3 * B6 / 8192.0;
-  X2 = _b1 * sq(B6) / 268435456.0;
-  X3 = ((X1 + X2) + 2) / 4.0;
-  float B4 = (_ac4 * (X3 + 32768)) / 32768.0;
-  float B7 = (_up - B3) * 50000 / oss_mult;
+  X1 = _ac3 * B6;
+  X2 = _b1 * sq(B6);
+  X3 = ((X1 + X2) + 2) / 4;
+  float B4 = _ac4 * (X3 + 32768);
+  float B7 = (_up - B3) * _oss_scale;
 
 #if BMP085_DEBUG == 1
   Serial.print("X1 = "); Serial.println(X1);
@@ -154,10 +154,10 @@ int32_t Adafruit_BMP085::pressure(void) {
   Serial.print("B7 = "); Serial.println(B7);
 #endif
 
-  int32_t p = B7 * 2 / B4;
-  X1 = sq(p / 256.0);
-  X1 = (X1 * 3038.0) / 65536.0;
-  X2 = (-7357 * p) / 65536.0;
+  float p = B7 * 2 / B4;
+  X1 = sq(p / 256);
+  X1 = (X1 * 3038) / 65536;
+  X2 = (-7357 * p) / 65536;
 
 #if BMP085_DEBUG == 1
   Serial.print("p = "); Serial.println(p);
@@ -165,7 +165,7 @@ int32_t Adafruit_BMP085::pressure(void) {
   Serial.print("X2 = "); Serial.println(X2);
 #endif
 
-  p += ((X1 + X2 + 3791.0) / 16.0);
+  p += (X1 + X2 + 3791) / 16;
 #if BMP085_DEBUG == 1
   Serial.print("p = "); Serial.println(p);
 #endif
@@ -181,7 +181,7 @@ float Adafruit_BMP085::temperature(void) {
   if (!_have_b5)
     _computeB5();
 
-  return (_b5 + 8) / 160.0;
+  return (_b5 + 0.125) * 0.4;
 }
 
 float Adafruit_BMP085::altitude(float sealevelPressure) {

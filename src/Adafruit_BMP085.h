@@ -40,11 +40,10 @@ public:
 
 private:
   uint8_t _oversampling;
+  uint16_t _oss_mult, _oss_scale;
 
-  int16_t _ac1, _ac2, _ac3;
-  uint16_t _ac4, _ac5, _ac6;
-  int16_t _b1, _b2, _mb, _mc, _md;
-  float _b5;
+  float _ac1, _ac2, _ac3, _ac4, _ac5, _ac6;
+  float _b1, _b2, _b5, _mb, _mc, _md;
   bool _have_b5;
 
   uint16_t _ut;
