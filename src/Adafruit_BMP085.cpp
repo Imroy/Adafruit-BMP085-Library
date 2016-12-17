@@ -172,9 +172,9 @@ float Adafruit_BMP085::pressure(void) {
   return p;
 }
 
-int32_t Adafruit_BMP085::sealevelPressure(float altitude_meters) {
+float Adafruit_BMP085::sealevelPressure(float altitude_meters) {
   float p = pressure();
-  return (int32_t)(p / pow(1.0-altitude_meters/44330, 5.255));
+  return p / pow(1 - altitude_meters / 44330, 5.255);
 }
 
 float Adafruit_BMP085::temperature(void) {
@@ -187,7 +187,7 @@ float Adafruit_BMP085::temperature(void) {
 float Adafruit_BMP085::altitude(float sealevelPressure) {
   float p = pressure();
 
-  return 44330 * (1.0 - pow(p / sealevelPressure, 0.1903));
+  return 44330 * (1 - pow(p / sealevelPressure, 0.1903));
 }
 
 uint8_t Adafruit_BMP085::_read8(Register addr) {
