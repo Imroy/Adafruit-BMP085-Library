@@ -155,8 +155,7 @@ float Adafruit_BMP085::pressure(void) {
 #endif
 
   float p = B7 * 2 / B4;
-  X1 = sq(p / 256);
-  X1 = (X1 * 3038) / 65536;
+  X1 = sq(p / 256) * 3038 / 65536;
   X2 = (-7357 * p) / 65536;
 
 #if BMP085_DEBUG == 1
