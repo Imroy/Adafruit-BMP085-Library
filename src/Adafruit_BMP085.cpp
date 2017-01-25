@@ -195,10 +195,13 @@ uint8_t Adafruit_BMP085::_read8(Register addr) {
   Wire.write(static_cast<uint8_t>(addr)); // sends register address to read from
   Wire.endTransmission(); // end transmission
 
-  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
-  Wire.requestFrom(BMP085_I2CADDR, 1);// send data n-bytes read
-
   _error = false;
+  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
+  if (Wire.requestFrom(BMP085_I2CADDR, 1) < 1) { // send data n-bytes read
+    _error = true;
+    return 0;
+  }
+
   int d = Wire.read(); // receive DATA
   if (d == -1) {
     _error = true;
@@ -215,10 +218,13 @@ uint16_t Adafruit_BMP085::_read16u(Register addr) {
   Wire.write(static_cast<uint8_t>(addr)); // sends register address to read from
   Wire.endTransmission(); // end transmission
 
-  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
-  Wire.requestFrom(BMP085_I2CADDR, 2);// send data n-bytes read
-
   _error = false;
+  Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
+  if (Wire.requestFrom(BMP085_I2CADDR, 2) < 2) { // send data n-bytes read
+    _error = true;
+    return 0;
+  }
+
   int d = Wire.read();
   if (d == -1) {
     _error = true;
