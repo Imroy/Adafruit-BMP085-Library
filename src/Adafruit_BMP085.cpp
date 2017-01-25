@@ -105,13 +105,13 @@ bool Adafruit_BMP085::readRawTemperature(void) {
 }
 
 bool Adafruit_BMP085::readRawPressure(void) {
-  uint16_t d;
-  d = _read16(Register::Data);
+  uint16_t high = _read16(Register::Data);
   if (_error) return false;
-  _up = (uint32_t)d << 8;
-  d = _read8(Register::Data_XLSB);
+
+  uint8_t low = _read8(Register::Data_XLSB);
   if (_error) return false;
-  _up |= d & 0xff;
+
+  _up = (static_cast<uint32_t>(high) << 8) | low;
   _up >>= (8 - _oversampling);
 
 #if BMP085_DEBUG == 1
@@ -202,15 +202,14 @@ uint8_t Adafruit_BMP085::_read8(Register addr) {
     return 0;
   }
 
-  int d = Wire.read(); // receive DATA
-  if (d == -1) {
+  int data = Wire.read(); // receive DATA
+  if (data == -1) {
     _error = true;
     return 0;
   }
-  uint8_t ret = d;
   Wire.endTransmission(); // end transmission
 
-  return ret;
+  return data & 0xff;
 }
 
 uint16_t Adafruit_BMP085::_read16u(Register addr) {
@@ -225,24 +224,21 @@ uint16_t Adafruit_BMP085::_read16u(Register addr) {
     return 0;
   }
 
-  int d = Wire.read();
-  if (d == -1) {
+  int high = Wire.read();
+  if (high == -1) {
     _error = true;
     return 0;
   }
 
-  uint16_t ret = (d & 0xff) << 8;
-
-  d = Wire.read();
-  if (d == -1) {
+  int low = Wire.read();
+  if (low == -1) {
     _error = true;
     return 0;
   }
-  ret |= (uint8_t)d;
 
   Wire.endTransmission(); // end transmission
 
-  return ret;
+  return ((high & 0xff)  << 8) | (low & 0xff);
 }
 
 void Adafruit_BMP085::_write_cmd(Register addr, Command cmd) {
