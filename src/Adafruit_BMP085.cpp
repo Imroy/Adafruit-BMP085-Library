@@ -37,29 +37,29 @@ boolean Adafruit_BMP085::begin(Mode m) {
     return false;
 
   /* read calibration data */
-  _ac1 = _read16(Register::Cal_AC1) * 4.0;
+  _ac1 = static_cast<float>(_read16(Register::Cal_AC1)) * 4;
   if (_error) return false;
-  _ac2 = _read16(Register::Cal_AC2) / 32.0;
+  _ac2 = static_cast<float>(_read16(Register::Cal_AC2)) / 32;
   if (_error) return false;
-  _ac3 = _read16(Register::Cal_AC3) / 128.0;
+  _ac3 = static_cast<float>(_read16(Register::Cal_AC3)) / 128;
   if (_error) return false;
-  _ac4 = _read16u(Register::Cal_AC4) / 32768.0;
+  _ac4 = static_cast<float>(_read16u(Register::Cal_AC4)) / 32768;
   if (_error) return false;
-  _ac5 = _read16u(Register::Cal_AC5) / 32768.0;
+  _ac5 = static_cast<float>(_read16u(Register::Cal_AC5)) / 32768;
   if (_error) return false;
-  _ac6 = _read16u(Register::Cal_AC6);
-  if (_error) return false;
-
-  _b1 = _read16(Register::Cal_B1) / 65536.0;
-  if (_error) return false;
-  _b2 = _read16(Register::Cal_B2) / 2048.0;
+  _ac6 = static_cast<float>(_read16u(Register::Cal_AC6));
   if (_error) return false;
 
-  _mb = _read16(Register::Cal_MB);
+  _b1 = static_cast<float>(_read16(Register::Cal_B1)) / 65536;
   if (_error) return false;
-  _mc = _read16(Register::Cal_MC) * 2048.0;
+  _b2 = static_cast<float>(_read16(Register::Cal_B2)) / 2048;
   if (_error) return false;
-  _md = _read16(Register::Cal_MD);
+
+  _mb = static_cast<float>(_read16(Register::Cal_MB));
+  if (_error) return false;
+  _mc = static_cast<float>(_read16(Register::Cal_MC)) * 2048;
+  if (_error) return false;
+  _md = static_cast<float>(_read16(Register::Cal_MD));
   if (_error) return false;
 #if (BMP085_DEBUG == 1)
   Serial.print("ac1 = "); Serial.println(_ac1, DEC);
