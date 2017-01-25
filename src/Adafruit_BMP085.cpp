@@ -33,6 +33,12 @@ boolean Adafruit_BMP085::begin(Mode m) {
   _oss_mult = 1 << _oversampling;
   _oss_scale = 50000UL >> _oversampling;
 
+#if (BMP085_DEBUG == 1)
+  Serial.print("oss = "); Serial.println(_oversampling, DEC);
+  Serial.print("oss_mult = "); Serial.println(_oss_mult, DEC);
+  Serial.print("oss_scale = "); Serial.println(_oss_scale, DEC);
+#endif
+
   if (!check())
     return false;
 
