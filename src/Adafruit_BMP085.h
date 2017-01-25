@@ -78,7 +78,7 @@ private:
 
   uint8_t _read8(Register addr);
   uint16_t _read16u(Register addr);
-  inline int16_t _read16(Register addr) { return (int16_t)_read16u(addr); }
+  inline int16_t _read16(Register addr) { return static_cast<int16_t>(_read16u(addr)); }
   void _write_cmd(Register addr, Command cmd);
   void _computeB5(void);
 
