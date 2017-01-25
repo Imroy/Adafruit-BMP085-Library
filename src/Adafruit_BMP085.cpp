@@ -210,7 +210,7 @@ uint8_t Adafruit_BMP085::_read8(Register addr) {
   return ret;
 }
 
-uint16_t Adafruit_BMP085::_read16(Register addr) {
+uint16_t Adafruit_BMP085::_read16u(Register addr) {
   Wire.beginTransmission(BMP085_I2CADDR); // start transmission to device
   Wire.write(static_cast<uint8_t>(addr)); // sends register address to read from
   Wire.endTransmission(); // end transmission
