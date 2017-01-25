@@ -43,11 +43,11 @@ boolean Adafruit_BMP085::begin(Mode m) {
   if (_error) return false;
   _ac3 = _read16(Register::Cal_AC3) / 128.0;
   if (_error) return false;
-  _ac4 = _read16(Register::Cal_AC4) / 32768.0;
+  _ac4 = _read16u(Register::Cal_AC4) / 32768.0;
   if (_error) return false;
-  _ac5 = _read16(Register::Cal_AC5) / 32768.0;
+  _ac5 = _read16u(Register::Cal_AC5) / 32768.0;
   if (_error) return false;
-  _ac6 = _read16(Register::Cal_AC6);
+  _ac6 = _read16u(Register::Cal_AC6);
   if (_error) return false;
 
   _b1 = _read16(Register::Cal_B1) / 65536.0;
